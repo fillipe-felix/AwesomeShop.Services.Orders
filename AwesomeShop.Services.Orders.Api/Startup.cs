@@ -26,6 +26,8 @@ namespace AwesomeShop.Services.Orders.Api
                 .AddHandlers()
                 .AddMongo()
                 .AddRepositories();
+
+            services.AddHttpClient();
             
             services.AddControllers();
             services.AddSwaggerGen(c =>
