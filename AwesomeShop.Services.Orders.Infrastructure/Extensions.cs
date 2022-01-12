@@ -1,4 +1,5 @@
 ﻿using AwesomeShop.Services.Orders.Core.Repositories;
+using AwesomeShop.Services.Orders.Infrastructure.MessageBus;
 using AwesomeShop.Services.Orders.Infrastructure.Persistence;
 using AwesomeShop.Services.Orders.Infrastructure.Persistence.Repositories;
 
@@ -7,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MongoDB.Bson;
 using MongoDB.Driver;
+
+using RabbitMQ.Client;
 
 namespace AwesomeShop.Services.Orders.Infrastructure
 {
@@ -48,6 +51,21 @@ namespace AwesomeShop.Services.Orders.Infrastructure
         {
             services.AddScoped<IOrderRepository, OrderRepository>();
 
+            return services;
+        }
+
+        public static IServiceCollection AddMessageBus(this IServiceCollection services)
+        {
+            var connectionFactory = new ConnectionFactory
+            {
+                HostName = "localhost"
+            };
+
+            var connection = connectionFactory.CreateConnection("order-service-producer");
+
+            services.AddSingleton(new ProducerConnection(connection));
+            services.AddSingleton<IMessageBusClient, RabbitMqClient>();
+            
             return services;
         }
     }
