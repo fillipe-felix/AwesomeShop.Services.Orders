@@ -6,8 +6,12 @@ using AwesomeShop.Services.Orders.Infrastructure.MessageBus;
 using AwesomeShop.Services.Orders.Infrastructure.Persistence;
 using AwesomeShop.Services.Orders.Infrastructure.Persistence.Repositories;
 
+using Consul;
+
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -104,6 +108,46 @@ namespace AwesomeShop.Services.Orders.Infrastructure
             Console.WriteLine($"ToDashCase: " + sb.ToString());
 
             return sb.ToString();
+        }
+
+        public static IServiceCollection AddConsulConfig(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddSingleton<IConsulClient, ConsulClient>(p => new ConsulClient(consulConfig =>
+            {
+                var address = configuration.GetValue<string>("Consul:Host");
+
+                consulConfig.Address = new Uri(address);
+
+            }));
+
+            return services;
+        }
+
+        public static IApplicationBuilder UseConsul(this IApplicationBuilder app)
+        {
+            var consulClient = app.ApplicationServices.GetRequiredService<IConsulClient>();
+            var lifeTime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
+
+            var registration = new AgentServiceRegistration
+            {
+                ID = $"order-service-{Guid.NewGuid()}",
+                Name = "OrderServices",
+                Address = "localhost",
+                Port = 5003
+            };
+
+            consulClient.Agent.ServiceDeregister(registration.ID).ConfigureAwait(true);
+            consulClient.Agent.ServiceRegister(registration).ConfigureAwait(true);
+
+            Console.WriteLine("Service registered in Consul");
+            
+            lifeTime.ApplicationStopped.Register(() =>
+            {
+                consulClient.Agent.ServiceDeregister(registration.ID).ConfigureAwait(true);
+                Console.WriteLine("Service deregisted in Consul");
+            });
+            
+            return app;
         }
     }
 }
