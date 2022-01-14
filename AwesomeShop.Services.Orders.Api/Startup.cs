@@ -27,7 +27,8 @@ namespace AwesomeShop.Services.Orders.Api
                 .AddMongo()
                 .AddRepositories()
                 .AddMessageBus()
-                .AddSubscribers();
+                .AddSubscribers()
+                .AddConsulConfig(Configuration);
 
             services.AddHttpClient();
             
@@ -53,7 +54,9 @@ namespace AwesomeShop.Services.Orders.Api
 
             app.UseRouting();
 
-            app.UseAuthorization();
+            //.UseAuthorization();
+
+            app.UseConsul();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
