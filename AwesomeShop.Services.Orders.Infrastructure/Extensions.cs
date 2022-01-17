@@ -5,6 +5,7 @@ using AwesomeShop.Services.Orders.Core.Repositories;
 using AwesomeShop.Services.Orders.Infrastructure.MessageBus;
 using AwesomeShop.Services.Orders.Infrastructure.Persistence;
 using AwesomeShop.Services.Orders.Infrastructure.Persistence.Repositories;
+using AwesomeShop.Services.Orders.Infrastructure.ServiceDiscovery;
 
 using Consul;
 
@@ -119,6 +120,8 @@ namespace AwesomeShop.Services.Orders.Infrastructure
                 consulConfig.Address = new Uri(address);
 
             }));
+
+            services.AddTransient<IServiceDiscoveryService, ConsulService>();
 
             return services;
         }
