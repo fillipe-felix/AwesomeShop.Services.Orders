@@ -33,7 +33,7 @@ namespace AwesomeShop.Services.Orders.Application.Commands.Handlers
         {
             var order = request.ToEntity();
 
-            var customerUrl = await _serviceDiscovery.GetServiceUri("CustomerServices", $"/api/customer/{order.Customer.Id}");
+            var customerUrl = await _serviceDiscovery.GetServiceUri("CustomerServices", $"/api/customers/{order.Customer.Id}");
 
             var httpClient = new HttpClient();
 
